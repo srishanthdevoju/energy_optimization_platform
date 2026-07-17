@@ -12,7 +12,17 @@ from config import THEME_COLORS
 
 load_dotenv()
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+
+def _get_api_key():
+    """Get Groq API key: Streamlit Cloud secrets first, then .env fallback."""
+    try:
+        return st.secrets["GROQ_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        return os.environ.get("GROQ_API_KEY", "")
+
+
+GROQ_API_KEY = _get_api_key()
+
 MODEL_NAME = "llama-3.3-70b-versatile"
 
 
