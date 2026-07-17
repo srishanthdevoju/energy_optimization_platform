@@ -106,12 +106,20 @@ def load_and_merge(
 
     Returns a merged DataFrame with daily energy, household info, and weather.
     """
-    df_daily = load_daily_dataset()
+    import os
+    from config import DAILY_DATASET_SAMPLE
+
+    if sample and os.path.exists(DAILY_DATASET_SAMPLE):
+        logger.info("Loading pre-sampled daily dataset from %s", DAILY_DATASET_SAMPLE)
+        df_daily = load_daily_dataset(str(DAILY_DATASET_SAMPLE))
+        # Already pre-sampled to 500 households, no need to sample again
+    else:
+        df_daily = load_daily_dataset()
+        if sample:
+            df_daily = sample_top_households(df_daily, n=n_households)
+
     df_weather = load_weather()
     df_households = load_households()
-
-    if sample:
-        df_daily = sample_top_households(df_daily, n=n_households)
 
     logger.info("Merging daily data with household info...")
     df = pd.merge(df_daily, df_households, on="LCLid", how="left")

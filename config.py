@@ -14,6 +14,7 @@ SCRIPTS_DIR = BASE_DIR / "scripts"
 SAVED_MODELS_DIR.mkdir(exist_ok=True)
 
 DAILY_DATASET = DATA_DIR / "daily_dataset.csv"
+DAILY_DATASET_SAMPLE = DATA_DIR / "daily_dataset_sample.csv"
 WEATHER_DATASET = DATA_DIR / "weather_daily_darksky.csv"
 HOUSEHOLDS_DATASET = DATA_DIR / "informations_households.csv"
 HOLIDAYS_DATASET = DATA_DIR / "uk_bank_holidays.csv"
