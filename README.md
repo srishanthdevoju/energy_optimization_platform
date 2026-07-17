@@ -241,7 +241,12 @@ This project is for educational and research purposes.
 
 ## 🌐 Deployment Guide (FastAPI Backend on Render + React Frontend on Vercel)
 
-This application can be hosted as a decoupled system: **FastAPI backend on Render** and **React frontend on Vercel**.
+This application is hosted as a decoupled system: **FastAPI backend on Render** and **React frontend on Vercel**.
+
+* **Live Frontend:** [https://energy-optimization-platform.vercel.app](https://energy-optimization-platform.vercel.app)
+* **Live API Backend:** [https://energy-optimization-platform-4wm1.onrender.com](https://energy-optimization-platform-4wm1.onrender.com)
+
+---
 
 ### Step 1: Deploy Backend to Render
 
@@ -251,10 +256,10 @@ This application can be hosted as a decoupled system: **FastAPI backend on Rende
    - **Runtime**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt && python scripts/train_models.py`
    - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. In the **Environment Variables** section, add your Groq key:
-   - **Key**: `GROQ_API_KEY`
-   - **Value**: `your_actual_groq_api_key`
-5. Deploy the Web Service and copy your public Render URL (e.g. `https://energy-api.onrender.com`).
+4. Add the following **Environment Variables** in the Render service settings:
+   - `GROQ_API_KEY`: `your_actual_groq_api_key`
+   - `GIT_LFS_ENABLED`: `true` *(required for Git LFS to pull model files)*
+5. **Memory Constraint Note:** Since Render Free Tier has a 512 MB RAM limit, the app is configured to dynamically check for and load a pre-sampled 80-household dataset (`data/daily_dataset_sample.csv`, ~6.2 MB) on startup to prevent Out of Memory (OOM) crashes.
 
 ---
 
@@ -262,14 +267,14 @@ This application can be hosted as a decoupled system: **FastAPI backend on Rende
 
 1. Log in to [Vercel.com](https://vercel.com) and click **Add New Project**.
 2. Connect your GitHub repository.
-3. In the project setup, set the **Root Directory** to `frontend`.
-4. Configure the following settings:
-   - **Framework Preset**: `Vite`
+3. In the project setup, configure the following:
+   - **Root Directory**: Select `frontend`
+   - **Framework Preset**: `Vite` (automatically detected)
    - **Build Command**: `npm run build`
-   - **Output Directory**: `dist` (Vite defaults to `dist` when building inside the `frontend` folder)
-5. Add the following **Environment Variable** in the Vercel project settings:
+   - **Output Directory**: `../static` *(Note: Since Vite is configured to compile into `../static`, you must override the default output directory setting in Vercel to `../static`)*
+4. Add the following **Environment Variable** in Vercel settings:
    - **Key**: `VITE_API_BASE_URL`
-   - **Value**: Your Render Backend URL from Step 1 (e.g. `https://energy-api.onrender.com` — *no trailing slash*).
-6. Click **Deploy**. Vercel will build the frontend assets and host them globally!
+   - **Value**: `https://energy-optimization-platform-4wm1.onrender.com` *(no trailing slash)*
+5. Click **Deploy**. Vercel will build the frontend assets and host them globally!
 
 
