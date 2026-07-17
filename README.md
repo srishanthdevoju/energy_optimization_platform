@@ -95,14 +95,25 @@ The **London Smart Meter Dataset** contains:
 
 ```
 energy_optimization_platform/
-├── app.py                          # Streamlit entry point
+├── main.py                         # FastAPI backend entry point
 ├── config.py                       # Central configuration
 ├── requirements.txt                # Python dependencies
 ├── .env                            # Groq API key (not pushed to git)
 ├── .gitignore                      # Git ignore rules
 ├── README.md
 ├── explain.md                      # Detailed project documentation
+├── Dockerfile                      # Multi-stage container build
 │
+├── frontend/                       # React frontend SPA (Vite + CSS)
+│   ├── package.json
+│   ├── vite.config.js              # Proxy and outDir build settings
+│   └── src/
+│       ├── App.jsx                 # Routing and layout structure
+│       ├── main.jsx
+│       ├── index.css               # Global dark glassmorphism system
+│       └── pages/                  # Home, Eda, Forecast, Clusters, Anomalies, Insights, Chat
+│
+├── static/                         # Compiled frontend distribution bundle (gitignored)
 ├── data/                           # CSV datasets
 │
 ├── preprocessing/
@@ -119,17 +130,8 @@ energy_optimization_platform/
 │   ├── visualization.py            # 20+ Plotly chart functions
 │   └── metrics.py                  # MAE, RMSE, MAPE, R²
 │
-├── dashboard/
-│   ├── home.py                     # Overview & KPIs
-│   ├── eda.py                      # Exploratory data analysis
-│   ├── forecast.py                 # Forecasting & model comparison
-│   ├── clusters.py                 # Cluster visualization
-│   ├── anomalies.py                # Anomaly detection
-│   ├── insights.py                 # AI recommendations
-│   └── chatbot.py                  # RAG chatbot UI
-│
 ├── rag/
-│   └── chatbot.py                  # RAG engine (FAISS + Groq)
+│   └── chatbot.py                  # Lightweight keyword RAG engine
 │
 ├── saved_models/                   # Serialized models (joblib)
 ├── scripts/
@@ -150,25 +152,28 @@ energy_optimization_platform/
 ### Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Install python dependencies
 pip install -r requirements.txt
 
-# 2. Create a .env file with your Groq API key (for RAG chatbot)
+# 2. Setup Groq API Key
 echo GROQ_API_KEY=your_groq_api_key_here > .env
 
-# 3. Train all ML models
+# 3. Build the React frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# 4. Train all ML models
 python scripts/train_models.py
 
-# 4. (Optional) Run hyperparameter tuning
-python scripts/tune_models.py
-
-# 5. Launch the dashboard
-python -m streamlit run app.py
+# 5. Launch the FastAPI server
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 > **Note:** Get a free Groq API key at [console.groq.com](https://console.groq.com). The API key is loaded from `.env` automatically — visitors can use the chatbot without entering any key.
 
-The dashboard will open at `http://localhost:8501`.
+The backend server and frontend application will be hosted at `http://localhost:8000`.
 
 ---
 
@@ -231,3 +236,40 @@ Evaluation results from training on 500 sampled households with a 60-day holdout
 ## 📝 License
 
 This project is for educational and research purposes.
+
+---
+
+## 🌐 Deployment Guide (FastAPI Backend on Render + React Frontend on Vercel)
+
+This application can be hosted as a decoupled system: **FastAPI backend on Render** and **React frontend on Vercel**.
+
+### Step 1: Deploy Backend to Render
+
+1. Sign up/Log in at [Render.com](https://render.com) and create a **Web Service**.
+2. Connect your GitHub repository.
+3. Configure the following Web Service settings:
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt && python scripts/train_models.py`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. In the **Environment Variables** section, add your Groq key:
+   - **Key**: `GROQ_API_KEY`
+   - **Value**: `your_actual_groq_api_key`
+5. Deploy the Web Service and copy your public Render URL (e.g. `https://energy-api.onrender.com`).
+
+---
+
+### Step 2: Deploy Frontend to Vercel
+
+1. Log in to [Vercel.com](https://vercel.com) and click **Add New Project**.
+2. Connect your GitHub repository.
+3. In the project setup, set the **Root Directory** to `frontend`.
+4. Configure the following settings:
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist` (Vite defaults to `dist` when building inside the `frontend` folder)
+5. Add the following **Environment Variable** in the Vercel project settings:
+   - **Key**: `VITE_API_BASE_URL`
+   - **Value**: Your Render Backend URL from Step 1 (e.g. `https://energy-api.onrender.com` — *no trailing slash*).
+6. Click **Deploy**. Vercel will build the frontend assets and host them globally!
+
+
