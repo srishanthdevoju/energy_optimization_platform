@@ -49,7 +49,7 @@ The **London Smart Meter Dataset** contains:
                                                                         │
                                                               ┌─────────▼─────────┐
                                                               │  Streamlit        │
-                                                              │  Dashboard (app)  │
+                                                              │  Dashboard (7pp)  │
                                                               └───────────────────┘
 ```
 
@@ -82,6 +82,11 @@ The **London Smart Meter Dataset** contains:
 - Cluster-based savings potential (gap between highest and lowest groups)
 - Appliance scheduling suggestions
 
+### 5. RAG Chatbot (AI Assistant)
+- **Framework:** LangChain + FAISS + Sentence-Transformers
+- **LLM:** Groq API (Llama 3.3 70B)
+- **Knowledge Base:** Project docs (`explain.md`, `README.md`) + live data summaries
+- **Features:** Conversational memory, source-chunk transparency, model selector
 ---
 
 ## 📁 Project Structure
@@ -115,7 +120,11 @@ energy_optimization_platform/
 │   ├── forecast.py                 # Forecasting & model comparison
 │   ├── clusters.py                 # Cluster visualization
 │   ├── anomalies.py                # Anomaly detection
-│   └── insights.py                 # AI recommendations
+│   ├── insights.py                 # AI recommendations
+│   └── chatbot.py                  # RAG chatbot UI
+│
+├── rag/
+│   └── chatbot.py                  # RAG engine (FAISS + Groq)
 │
 ├── saved_models/                   # Serialized models (joblib)
 ├── scripts/
@@ -139,15 +148,20 @@ energy_optimization_platform/
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Train all ML models
+# 2. Create a .env file with your Groq API key (for RAG chatbot)
+echo GROQ_API_KEY=your_groq_api_key_here > .env
+
+# 3. Train all ML models
 python scripts/train_models.py
 
-# 3. (Optional) Run hyperparameter tuning
+# 4. (Optional) Run hyperparameter tuning
 python scripts/tune_models.py
 
-# 4. Launch the dashboard
+# 5. Launch the dashboard
 python -m streamlit run app.py
 ```
+
+> **Note:** Get a free Groq API key at [console.groq.com](https://console.groq.com). The chatbot also supports entering the key directly in the dashboard sidebar.
 
 The dashboard will open at `http://localhost:8501`.
 
@@ -163,6 +177,7 @@ The dashboard will open at `http://localhost:8501`.
 | 🎯 **Pattern Analysis** | K-Means clusters, radar profiles, elbow analysis, household lookup |
 | 🚨 **Anomaly Detection** | Anomaly timeline, adjustable sensitivity, score distribution |
 | 💡 **AI Insights** | Peak analysis, monthly projections, savings recommendations |
+| 🤖 **AI Chat** | RAG-powered chatbot for querying docs, data & model details |
 
 ---
 
@@ -197,6 +212,7 @@ Evaluation results from training on 500 sampled households with a 60-day holdout
 | Visualization | Plotly |
 | Dashboard | Streamlit |
 | Data Processing | Pandas, NumPy |
+| RAG / LLM | LangChain, FAISS, Sentence-Transformers, Groq |
 | Serialization | Joblib |
 
 ---

@@ -137,6 +137,7 @@ with st.sidebar:
         "🎯 Pattern Analysis": "clusters",
         "🚨 Anomaly Detection": "anomalies",
         "💡 AI Insights": "insights",
+        "🤖 AI Chat": "chatbot",
     }
 
     selected_page = st.radio(
@@ -177,4 +178,7 @@ elif page_key == "anomalies":
     render(df)
 elif page_key == "insights":
     from dashboard.insights import render
+    render(df)
+elif page_key == "chatbot":
+    from dashboard.chatbot import render
     render(df)
