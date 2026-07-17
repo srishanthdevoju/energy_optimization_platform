@@ -1,10 +1,7 @@
-# Large datasets
-data/*.csv
+# (Data files tracked via Git LFS)
 
-# Trained ML Models & cached results
-saved_models/*.joblib
-saved_models/*.csv
-saved_models/*.txt
+# Trained ML Models & cached results (tracked via Git LFS)
+
 
 # Python cache & virtual environments
 __pycache__/
