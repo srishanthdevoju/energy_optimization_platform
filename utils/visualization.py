@@ -143,25 +143,20 @@ def plot_acorn_analysis(df: pd.DataFrame) -> go.Figure:
 
 def plot_day_type_comparison(df: pd.DataFrame) -> go.Figure:
     """Bar chart comparing weekday, weekend, and bank holiday consumption."""
-    if "is_weekend" not in df.columns:
-        df = df.copy()
-        df["is_weekend"] = (df["day"].dt.dayofweek >= 5).astype(int)
-    if "is_bank_holiday" not in df.columns:
-        df = df.copy()
-        df["is_bank_holiday"] = 0
+    # Vectorized check
+    is_bh = df["is_bank_holiday"] == 1 if "is_bank_holiday" in df.columns else np.zeros(len(df), dtype=bool)
+    is_we = df["is_weekend"] == 1 if "is_weekend" in df.columns else (df["day"].dt.dayofweek >= 5)
 
-    def _day_type(row):
-        if row.get("is_bank_holiday", 0) == 1:
-            return "Bank Holiday"
-        elif row.get("is_weekend", 0) == 1:
-            return "Weekend"
-        return "Weekday"
-
-    df_copy = df.copy()
-    df_copy["day_type"] = df_copy.apply(_day_type, axis=1)
+    conditions = [is_bh, is_we]
+    choices = ["Bank Holiday", "Weekend"]
+    
+    df_copy = df[["energy_sum"]].copy()
+    df_copy["day_type"] = np.select(conditions, choices, default="Weekday")
+    
     avg = df_copy.groupby("day_type")["energy_sum"].mean().reindex(["Weekday", "Weekend", "Bank Holiday"]).reset_index()
     fig = px.bar(avg, x="day_type", y="energy_sum", color="day_type", color_discrete_sequence=_COLORS)
     return _apply_theme(fig, "📅 Energy by Day Type")
+
 
 
 
