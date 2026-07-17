@@ -1,0 +1,20 @@
+# Large datasets
+data/*.csv
+
+# Trained ML Models & cached results
+saved_models/*.joblib
+saved_models/*.csv
+saved_models/*.txt
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+.ipynb_checkpoints/
