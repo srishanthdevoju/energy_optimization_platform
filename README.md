@@ -49,7 +49,7 @@ The **London Smart Meter Dataset** contains:
                                                                         │
                                                               ┌─────────▼─────────┐
                                                               │  Streamlit        │
-                                                              │  Dashboard (6pp)  │
+                                                              │  Dashboard (app)  │
                                                               └───────────────────┘
 ```
 
