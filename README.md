@@ -12,6 +12,7 @@ Develop an AI-powered system that:
 3. **Discovers** household consumption patterns through clustering
 4. **Generates** dynamic, data-driven energy optimization insights
 5. **Visualizes** all results in an interactive Plotly + Streamlit dashboard
+6. **Answers questions** via a RAG-powered AI chatbot (Groq + FAISS)
 
 ---
 
@@ -83,10 +84,11 @@ The **London Smart Meter Dataset** contains:
 - Appliance scheduling suggestions
 
 ### 5. RAG Chatbot (AI Assistant)
-- **Framework:** LangChain + FAISS + Sentence-Transformers
-- **LLM:** Groq API (Llama 3.3 70B)
+- **Vector Store:** FAISS with Sentence-Transformers (`all-MiniLM-L6-v2`) embeddings
+- **LLM:** Groq API (Llama 3.3 70B) — called directly, no wrapper chains
 - **Knowledge Base:** Project docs (`explain.md`, `README.md`) + live data summaries
-- **Features:** Conversational memory, source-chunk transparency, model selector
+- **Features:** Conversational memory, source-chunk transparency, auto-loaded API key (no user input required)
+
 ---
 
 ## 📁 Project Structure
@@ -96,7 +98,10 @@ energy_optimization_platform/
 ├── app.py                          # Streamlit entry point
 ├── config.py                       # Central configuration
 ├── requirements.txt                # Python dependencies
+├── .env                            # Groq API key (not pushed to git)
+├── .gitignore                      # Git ignore rules
 ├── README.md
+├── explain.md                      # Detailed project documentation
 │
 ├── data/                           # CSV datasets
 │
@@ -161,7 +166,7 @@ python scripts/tune_models.py
 python -m streamlit run app.py
 ```
 
-> **Note:** Get a free Groq API key at [console.groq.com](https://console.groq.com). The chatbot also supports entering the key directly in the dashboard sidebar.
+> **Note:** Get a free Groq API key at [console.groq.com](https://console.groq.com). The API key is loaded from `.env` automatically — visitors can use the chatbot without entering any key.
 
 The dashboard will open at `http://localhost:8501`.
 

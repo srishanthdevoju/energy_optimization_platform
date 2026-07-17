@@ -1,29 +1,32 @@
 """
 RAG (Retrieval-Augmented Generation) chatbot engine for the Energy Analytics platform.
 Uses FAISS for vector search and Groq LLM for answer generation.
+Direct Groq API approach — no deprecated langchain chains.
 """
 
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_groq import ChatGroq
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.documents import Document
+from groq import Groq
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+SYSTEM_PROMPT = """You are an AI Energy Assistant for the AI-Powered Energy Analytics System.
+You answer questions about the platform, its data, ML models, energy insights, and architecture.
+Use ONLY the provided context to answer. If the context doesn't contain the answer, say so honestly.
+Keep answers clear, concise, and helpful. Use bullet points and formatting when appropriate."""
 
 
 def _load_documents() -> List[Document]:
@@ -50,8 +53,6 @@ def _load_documents() -> List[Document]:
 
 def _generate_data_summary(df) -> Document:
     """Generate a live data summary document from the loaded DataFrame."""
-    import numpy as np
-
     summary_parts = [
         "## Live Dataset Summary",
         f"- Total records: {len(df):,}",
@@ -128,46 +129,42 @@ def build_knowledge_base(df=None) -> FAISS:
     return vectorstore
 
 
-def get_rag_chain(
-    api_key: str,
+def ask(
+    question: str,
     vectorstore: FAISS,
+    api_key: str,
+    chat_history: List[dict],
     model_name: str = "llama-3.3-70b-versatile",
-) -> ConversationalRetrievalChain:
-    """Create a conversational RAG chain backed by Groq."""
-    llm = ChatGroq(
-        api_key=api_key,
+) -> Tuple[str, List[Document]]:
+    """
+    Query the RAG system: retrieve relevant chunks, then ask Groq LLM.
+    Returns (answer, source_documents).
+    """
+    retrieved_docs = vectorstore.similarity_search(question, k=4)
+
+    context = "\n\n---\n\n".join(
+        [f"[Source: {doc.metadata.get('source', 'Unknown')}]\n{doc.page_content}"
+         for doc in retrieved_docs]
+    )
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    for msg in chat_history[-6:]:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+
+    user_message = (
+        f"Context from knowledge base:\n\n{context}\n\n---\n\n"
+        f"User question: {question}"
+    )
+    messages.append({"role": "user", "content": user_message})
+
+    client = Groq(api_key=api_key)
+    response = client.chat.completions.create(
         model=model_name,
+        messages=messages,
         temperature=0.3,
         max_tokens=1024,
     )
 
-    memory = ConversationBufferWindowMemory(
-        memory_key="chat_history",
-        return_messages=True,
-        output_key="answer",
-        k=5,
-    )
-
-    retriever = vectorstore.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": 4},
-    )
-
-    chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        return_source_documents=True,
-        verbose=False,
-    )
-
-    logger.info("RAG chain initialized with model=%s", model_name)
-    return chain
-
-
-def ask(question: str, chain: ConversationalRetrievalChain) -> Tuple[str, List[Document]]:
-    """Query the RAG chain and return (answer, source_documents)."""
-    result = chain.invoke({"question": question})
-    answer = result.get("answer", "I couldn't generate a response.")
-    sources = result.get("source_documents", [])
-    return answer, sources
+    answer = response.choices[0].message.content
+    return answer, retrieved_docs
