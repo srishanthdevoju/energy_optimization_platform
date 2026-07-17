@@ -119,7 +119,9 @@ energy_optimization_platform/
 │
 ├── saved_models/                   # Serialized models (joblib)
 ├── scripts/
-│   └── train_models.py             # One-shot training script
+│   ├── train_models.py             # One-shot training script
+│   ├── audit_models.py             # Model health check & diagnostics
+│   └── tune_models.py              # Hyperparameter tuning search
 └── notebooks/                      # Optional analysis notebooks
 ```
 
@@ -137,11 +139,14 @@ energy_optimization_platform/
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Train all ML models (takes ~5 minutes)
+# 2. Train all ML models
 python scripts/train_models.py
 
-# 3. Launch the dashboard
-streamlit run app.py
+# 3. (Optional) Run hyperparameter tuning
+python scripts/tune_models.py
+
+# 4. Launch the dashboard
+python -m streamlit run app.py
 ```
 
 The dashboard will open at `http://localhost:8501`.
@@ -163,15 +168,23 @@ The dashboard will open at `http://localhost:8501`.
 
 ## 📈 Model Evaluation
 
-Evaluation results from training on 500 sampled households with a 60-day holdout test set:
+Evaluation results from training on 500 sampled households with a 60-day holdout test set (Baseline vs. Tuned parameters):
 
+### Baseline Models (Full Dataset)
 | Model | MAE (kWh) | RMSE (kWh) | R² Score |
 |-------|-----------|------------|----------|
-| XGBoost | ~2.30 | ~4.06 | ~0.836 |
-| LightGBM | ~2.30 | ~4.05 | ~0.837 |
-| Random Forest | ~2.35 | ~4.10 | ~0.832 |
+| **XGBoost** | 2.3047 | 4.0634 | 0.8356 |
+| **LightGBM** | 2.2958 | 4.0462 | 0.8370 |
+| **Random Forest** | 2.2970 | 4.0345 | 0.8379 |
 
-*Results may vary slightly between runs due to data sampling.*
+### Tuned Models (Optimized Parameters)
+| Model | MAE (kWh) | R² Score | Optimized Hyperparameters |
+|-------|-----------|----------|---------------------------|
+| **XGBoost** | 2.2295 | 0.8401 | `n_estimators=300`, `max_depth=4`, `learning_rate=0.03`, `subsample=0.7`, `colsample_bytree=0.7` |
+| **LightGBM** | 2.2361 | 0.8384 | `n_estimators=300`, `max_depth=4`, `learning_rate=0.03`, `subsample=0.7`, `colsample_bytree=0.7` |
+| **Random Forest** | 2.2196 | 0.8386 | `n_estimators=150`, `max_depth=16`, `min_samples_split=10`, `min_samples_leaf=5` |
+
+*Tuned metrics are evaluated on validation fold splits during randomized search. Baseline results may vary slightly depending on household count constraints.*
 
 ---
 
@@ -190,7 +203,7 @@ Evaluation results from training on 500 sampled households with a 60-day holdout
 
 ## 📸 Screenshots
 
-*Launch the dashboard with `streamlit run app.py` to view all pages.*
+*Launch the dashboard with `python -m streamlit run app.py` to view all pages.*
 
 ---
 
