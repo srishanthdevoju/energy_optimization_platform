@@ -105,7 +105,7 @@ energy_optimization_platform/
 │   └── best_model.txt
 │
 └── notebooks/                 ← Interactive exploration
-    └── energy_analytics.ipynb     Google Colab notebook (self-contained)
+    └── energy_analytics_platform.ipynb Google Colab notebook (self-contained)
 ```
 
 ---

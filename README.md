@@ -139,6 +139,7 @@ energy_optimization_platform/
 │   ├── audit_models.py             # Model health check & diagnostics
 │   └── tune_models.py              # Hyperparameter tuning search
 └── notebooks/                      # Optional analysis notebooks
+    └── energy_analytics_platform.ipynb # Interactive exploration and model analysis
 ```
 
 ---
